@@ -1,0 +1,25 @@
+{
+  "timeZone": "UTC",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/gmail.addons.execute",
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/script.external_request"
+  ],
+  "gmail": {
+    "name": "Email Scorer",
+    "logoUrl": "https://fonts.gstatic.com/s/i/googlematerialicons/security/v14/24px.svg",
+    "primaryColor": "#1a73e8",
+    "secondaryColor": "#d93025",
+    "authorizationCheckFunction": "onGmailMessage",
+    "contextualTriggers": [
+      {
+        "unconditional": {},
+        "onTriggerFunction": "onGmailMessage"
+      }
+    ],
+    "openLinkUrlPrefixes": []
+  }
+}
