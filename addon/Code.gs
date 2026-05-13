@@ -61,7 +61,7 @@ function buildResultCard(result, fromEmail) {
   var scoreSection = CardService.newCardSection();
   scoreSection.addWidget(
     CardService.newTextParagraph().setText(
-      "<b>" + result.total_score + " / 100</b>  —  <font color='" + verdictColor(result.verdict) + "'>" + result.verdict + "</font>"
+      "<b>Risk Score:</b> <span dir='ltr'>" + result.total_score + "/100</span> • <b>" + riskBand(result.total_score) + "</b>  —  <font color='" + verdictColor(result.verdict) + "'>" + result.verdict + "</font>"
     )
   );
   scoreSection.addWidget(
@@ -224,6 +224,12 @@ function verdictColor(verdict) {
   if (verdict === "MALICIOUS")  return "#d32f2f";
   if (verdict === "SUSPICIOUS") return "#f57c00";
   return "#388e3c";
+}
+
+function riskBand(score) {
+  if (score >= 70) return "High Risk";
+  if (score >= 35) return "Medium Risk";
+  return "Low Risk";
 }
 
 function verdictIcon(verdict) {
