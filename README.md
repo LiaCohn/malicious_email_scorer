@@ -13,7 +13,7 @@ Gmail Add-on (Apps Script)
 Python FastAPI Backend  (runs locally, exposed via ngrok)
     ├── Header Analyzer     → SPF / DKIM / DMARC authentication
     ├── URL Analyzer        → VirusTotal reputation check
-    ├── Content Analyzer    → Phishing heuristics (regex)
+    ├── Content Analyzer    → Hybrid (rules + LLM semantic review)
     └── Blocklist Checker   → Personal sender blocklist
     │
     └── Weighted score → SAFE / SUSPICIOUS / MALICIOUS
@@ -33,7 +33,7 @@ The add-on sidebar shows:
 |--------|--------|----------------|
 | SPF/DKIM/DMARC | 25% | Did the sending server authenticate correctly? |
 | URL Reputation | 40% | Are any URLs flagged by VirusTotal? |
-| Content Heuristics | 35% | Phishing language, brand impersonation, suspicious TLDs |
+| Content Heuristics | 35% | Hybrid scoring: regex heuristics + optional LLM semantic analysis |
 | Personal Blocklist | Override | Always MALICIOUS if sender is blocked |
 
 **Verdict thresholds:**
@@ -58,6 +58,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # Edit .env and add your VirusTotal key + backend API key
+# Optional: add GROQ_API_KEY to enable LLM semantic content analysis
 ```
 
 ### 3. Start the backend
@@ -91,6 +92,9 @@ ngrok http 8000
   - Endpoint: `GET /urls/{id}`, `POST /urls`
   - Get your key at: https://virustotal.com
 
+- **Groq Chat Completions API** — optional semantic phishing analysis for email content.
+  - Endpoint: `POST /openai/v1/chat/completions`
+
 - **Gmail Apps Script API** — reads message content, headers, sender info.
 
 - **Google Apps Script UrlFetchApp** — makes HTTP requests from the add-on to the backend.
@@ -101,7 +105,7 @@ ngrok http 8000
 
 - [x] SPF / DKIM / DMARC header analysis
 - [x] URL extraction + VirusTotal reputation check
-- [x] Content heuristics (phishing phrases, brand impersonation, suspicious TLDs)
+- [x] Content analysis with hybrid scoring (deterministic heuristics + optional LLM semantic pass)
 - [x] Personal sender blocklist (add/remove via UI)
 - [x] Scan history (last 100 emails, stored in JSON)
 - [x] Explainable verdict — each signal shows its contribution
@@ -112,6 +116,10 @@ ngrok http 8000
 
 
 - **VirusTotal rate limit**: Free tier is 4 requests/minute. Emails with many URLs may hit this limit; the code limits checks to 5 URLs per email.
+
+- **SPF/DKIM/DMARC header availability in Gmail Add-on**: In the current add-on flow, full authentication headers are limited unless advanced Gmail API/raw header retrieval is enabled. When unavailable, the backend marks auth status as "unable to verify sender."
+
+- **LLM dependency is optional**: The content analyzer can use Groq for semantic phishing signals, but if `GROQ_API_KEY` is missing or the API call fails, it safely falls back to deterministic rule-based scoring.
 
 - **Static heuristic lists**: Brand list and suspicious TLDs are hardcoded. In production these would be loaded from a configurable source or external threat feed.
 
@@ -126,6 +134,7 @@ ngrok http 8000
 ## Future Improvements
 
 - Move static heuristics (brand/TLD lists) to configurable policy storage and optional external threat-intel feeds.
+- Improve Gmail header extraction using advanced Gmail API to increase SPF/DKIM/DMARC coverage.
 - Add stronger service authentication/authorization (signed service identity, secret rotation, per-tenant access control).
 - Replace local JSON persistence with a database and add basic observability (structured logs, error metrics, rate-limit monitoring).
 # malicious_email_scorer
